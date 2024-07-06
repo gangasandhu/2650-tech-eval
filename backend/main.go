@@ -1,17 +1,31 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"log"
-	"net/http"
-	"os"
+    "context"
+    // "crypto/rand"
+    // "encoding/hex"
+    "encoding/json"
+    "fmt"
+    "log"
+    "net/http"
+    "os"
+    "github.com/gorilla/handlers"
+    "github.com/gorilla/mux"
+    "github.com/joho/godotenv"
+    "go.mongodb.org/mongo-driver/bson"
+    "go.mongodb.org/mongo-driver/bson/primitive"
+    "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/mongo/options"
 )
+
+
+type Todo struct {
+    ID    primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+    Title string             `json:"title"`
+    Done  bool               `json:"done"`
+}
+
+var todoCollection *mongo.Collection
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the To-Do List!")
@@ -136,6 +150,24 @@ func updateTodoTitle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(updatedTodo)
+}
+
+func connectToDB() {
+    mongoURI := os.Getenv("MONGO_URI")
+    clientOptions := options.Client().ApplyURI(mongoURI)
+    var err error
+    client, err := mongo.Connect(context.TODO(), clientOptions)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    err = client.Ping(context.TODO(), nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println("Connected to MongoDB!")
+    todoCollection = client.Database("todo_db").Collection("todos")
 }
 
 func main() {
