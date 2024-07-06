@@ -18,13 +18,11 @@ import (
     "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
 type Todo struct {
     ID    primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
     Title string             `json:"title"`
     Done  bool               `json:"done"`
 }
-
 var todoCollection *mongo.Collection
 
 func homePage(w http.ResponseWriter, r *http.Request) {
